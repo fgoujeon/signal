@@ -13,6 +13,24 @@ template<class R, class... Args>
 class signal<R(Args...)>
 {
     private:
+        using fn_ptr = R(*)(void*, Args...);
+
+        struct callback
+        {
+            callback(fn_ptr pf, void* context):
+                pf(pf),
+                context(context)
+            {
+            }
+
+            fn_ptr pf;
+            void* context;
+        };
+
+        using callback_list = std::list<callback>;
+
+        using callback_id = typename callback_list::iterator;
+
         template<class Slot>
         class connection
         {
@@ -46,7 +64,7 @@ class signal<R(Args...)>
                 }
 
             private:
-                static auto on_event(void* context, Args... args)
+                static R on_event(void* context, Args... args)
                 {
                     auto& self = *reinterpret_cast<connection*>(context);
                     return self.slot_(args...);
@@ -55,26 +73,8 @@ class signal<R(Args...)>
             private:
                 signal* psignal_; //set to nullptr when moved from
                 Slot slot_;
-                typename signal::callback_id id_;
+                callback_id id_;
         };
-
-        using fn_ptr = R(*)(void*, Args...);
-
-        struct callback
-        {
-            callback(fn_ptr pf, void* context):
-                pf(pf),
-                context(context)
-            {
-            }
-
-            fn_ptr pf;
-            void* context;
-        };
-
-        using callback_list = std::list<callback>;
-
-        using callback_id = typename callback_list::iterator;
 
     public:
         signal() = default;
@@ -90,12 +90,12 @@ class signal<R(Args...)>
         template<class Slot>
         auto connect(Slot&& slot)
         {
-            return connection<Slot>{*this, slot};
+            return connection<Slot>{*this, std::forward<Slot>(slot)};
         }
 
         void operator()(Args... args)
         {
-            for(auto& s: callbacks_)
+            for(const auto& s: callbacks_)
                 s.pf(s.context, args...);
         }
 
