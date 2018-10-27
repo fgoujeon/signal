@@ -4,7 +4,7 @@
 
 int main()
 {
-    fgl::signals::signal<int> signal;
+    fgl::signals::signal<bool(int)> signal;
 
     auto i = 0;
 
@@ -13,6 +13,7 @@ int main()
         [&i](const int value)
         {
             i += value;
+            return true;
         }
     );
 
@@ -22,6 +23,7 @@ int main()
             [&i](const int value)
             {
                 i += value * 10;
+                return true;
             }
         );
 

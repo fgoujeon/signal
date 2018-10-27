@@ -6,8 +6,11 @@
 namespace fgl { namespace signals
 {
 
-template<class Arg>
-class signal
+template<class Signature>
+class signal;
+
+template<class R, class... Args>
+class signal<R(Args...)>
 {
     private:
         template<class Slot>
@@ -43,10 +46,10 @@ class signal
                 }
 
             private:
-                static void on_event(void* context, typename signal::arg_type value)
+                static auto on_event(void* context, Args... args)
                 {
                     auto& self = *reinterpret_cast<connection*>(context);
-                    self.slot_(value);
+                    return self.slot_(args...);
                 }
 
             private:
@@ -55,7 +58,7 @@ class signal
                 typename signal::callback_id id_;
         };
 
-        using fn_ptr = void(*)(void*, Arg);
+        using fn_ptr = R(*)(void*, Args...);
 
         struct callback
         {
@@ -74,9 +77,6 @@ class signal
         using callback_id = typename callback_list::iterator;
 
     public:
-        using arg_type = Arg;
-
-    public:
         signal() = default;
 
         signal(const signal&) = delete;
@@ -93,10 +93,10 @@ class signal
             return connection<Slot>{*this, slot};
         }
 
-        void operator()(Arg arg)
+        void operator()(Args... args)
         {
             for(auto& s: callbacks_)
-                s.pf(s.context, arg);
+                s.pf(s.context, args...);
         }
 
     private:
