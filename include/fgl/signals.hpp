@@ -90,7 +90,8 @@ class signal<R(Args...)>
         template<class Slot>
         auto connect(Slot&& slot)
         {
-            return connection<Slot>{*this, std::forward<Slot>(slot)};
+            using decaid_slot = std::decay_t<Slot>;
+            return connection<decaid_slot>{*this, std::forward<Slot>(slot)};
         }
 
         void operator()(Args... args)
