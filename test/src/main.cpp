@@ -1,36 +1,37 @@
 //#include <fgl/signals.hpp>
 #include "../../include/fgl/signals.hpp"
+#include <string>
 #include <cassert>
 
 int main()
 {
-    fgl::signals::signal<bool(int)> signal;
+    fgl::signals::signal<bool(const std::string&)> signal;
 
-    auto i = 0;
+    auto str = std::string{""};
 
-    auto connection = signal.connect
+    auto connection0 = signal.connect
     (
-        [&i](const int value)
+        [&str](const std::string& value)
         {
-            i += value;
+            str += "0" + value;
             return true;
         }
     );
 
     {
-        auto connection2 = signal.connect
+        auto connection1 = signal.connect
         (
-            [&i](const int value)
+            [&str](const std::string& value)
             {
-                i += value * 10;
+                str += "1" + value;
                 return true;
             }
         );
 
-        signal(1);
+        signal("a");
     }
 
-    signal(2);
+    signal("b");
 
-    assert(i == 13);
+    assert(str == "0a1a0b");
 }
