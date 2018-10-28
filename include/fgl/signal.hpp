@@ -1,5 +1,5 @@
-#ifndef FLG_SIGNAL_HPP
-#define FLG_SIGNAL_HPP
+#ifndef FGL_SIGNAL_HPP
+#define FGL_SIGNAL_HPP
 
 #include <list>
 
@@ -38,9 +38,9 @@ class signal<R(Args...)>
                 template<class Slot2>
                 connection(signal& sig, Slot2&& slot):
                     psignal_(&sig),
-                    slot_(std::forward<Slot2>(slot))
+                    slot_(std::forward<Slot2>(slot)),
+                    id_(psignal_->add_callback(&on_event, &slot_))
                 {
-                    id_ = psignal_->add_callback(&on_event, this);
                 }
 
                 connection(const connection&) = delete;
@@ -66,8 +66,8 @@ class signal<R(Args...)>
             private:
                 static R on_event(void* context, Args... args)
                 {
-                    auto& self = *reinterpret_cast<connection*>(context);
-                    return self.slot_(args...);
+                    auto& slot = *reinterpret_cast<Slot*>(context);
+                    return slot(args...);
                 }
 
             private:
