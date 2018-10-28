@@ -1,5 +1,4 @@
-//#include <fgl/signals.hpp>
-#include "../../include/fgl/signal.hpp"
+#include <fgl/signal.hpp>
 #include <string>
 #include <cassert>
 
