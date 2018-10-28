@@ -17,14 +17,14 @@ class signal<R(Args...)>
 
         struct callback
         {
-            callback(fn_ptr pf, void* context):
+            callback(fn_ptr pf, void* pvslot):
                 pf(pf),
-                context(context)
+                pvslot(pvslot)
             {
             }
 
             fn_ptr pf;
-            void* context;
+            void* pvslot;
         };
 
         using callback_list = std::list<callback>;
@@ -61,9 +61,9 @@ class signal<R(Args...)>
                 }
 
             private:
-                static R on_event(void* pcontext, Args... args)
+                static R on_event(void* pvslot, Args... args)
                 {
-                    auto& slot = *reinterpret_cast<Slot*>(pcontext);
+                    auto& slot = *reinterpret_cast<Slot*>(pvslot);
                     return slot(args...);
                 }
 
@@ -84,25 +84,23 @@ class signal<R(Args...)>
         signal& operator=(signal&&) = delete;
 
         template<class Slot>
-        auto connect(Slot&& slot)
+        auto connect(Slot& slot)
         {
             using decaid_slot = std::decay_t<Slot>;
-            return connection<decaid_slot>{*this, std::forward<Slot>(slot)};
+            return connection<decaid_slot>{*this, slot};
         }
 
         void emit(Args... args)
         {
             for(const auto& s: callbacks_)
-                s.pf(s.context, args...);
+                s.pf(s.pvslot, args...);
         }
 
     private:
-        callback_id add_callback(const fn_ptr pf, void* context)
+        callback_id add_callback(const fn_ptr pf, void* pvslot)
         {
-            callbacks_.emplace_back(pf, context);
-            auto it = callbacks_.end();
-            --it;
-            return it;
+            callbacks_.emplace_back(pf, pvslot);
+            return std::prev(callbacks_.end());
         }
 
         void remove_callback(const callback_id id)
