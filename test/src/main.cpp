@@ -1,11 +1,11 @@
 //#include <fgl/signals.hpp>
-#include "../../include/fgl/signals.hpp"
+#include "../../include/fgl/signal.hpp"
 #include <string>
 #include <cassert>
 
 int main()
 {
-    fgl::signals::signal<bool(const std::string&)> signal;
+    fgl::signal<bool(const std::string&)> signal;
 
     auto str = std::string{""};
 

@@ -1,9 +1,9 @@
-#ifndef FLG_SIGNALS_HPP
-#define FLG_SIGNALS_HPP
+#ifndef FLG_SIGNAL_HPP
+#define FLG_SIGNAL_HPP
 
 #include <list>
 
-namespace fgl { namespace signals
+namespace fgl
 {
 
 template<class Signature>
@@ -118,6 +118,6 @@ class signal<R(Args...)>
         callback_list callbacks_;
 };
 
-}} //namespace fgl::signals
+} //namespace fgl
 
 #endif
