@@ -94,7 +94,7 @@ class signal<R(Args...)>
             return connection<decaid_slot>{*this, std::forward<Slot>(slot)};
         }
 
-        void operator()(Args... args)
+        void emit(Args... args)
         {
             for(const auto& s: callbacks_)
                 s.pf(s.context, args...);

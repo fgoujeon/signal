@@ -50,10 +50,12 @@ int main()
             }
         );
 
-        sig("a");
+        sig.emit("a");
+
+        //automatic disconnection
     }
 
-    sig("b");
+    sig.emit("b");
 
     assert(str == "0a1a0b");
 }
