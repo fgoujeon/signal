@@ -35,11 +35,9 @@ class signal<R(Args...)>
         class connection
         {
             public:
-                template<class Slot2>
-                connection(signal& sig, Slot2&& slot):
+                connection(signal& sig, Slot& slot):
                     psignal_(&sig),
-                    slot_(std::forward<Slot2>(slot)),
-                    id_(psignal_->add_callback(&on_event, &slot_))
+                    id_(psignal_->add_callback(&on_event, &slot))
                 {
                 }
 
@@ -47,7 +45,6 @@ class signal<R(Args...)>
 
                 connection(connection&& r):
                     psignal_(r.psignal_),
-                    slot_(r.slot_),
                     id_(r.id_)
                 {
                     r.psignal_ = nullptr;
@@ -64,15 +61,14 @@ class signal<R(Args...)>
                 }
 
             private:
-                static R on_event(void* context, Args... args)
+                static R on_event(void* pcontext, Args... args)
                 {
-                    auto& slot = *reinterpret_cast<Slot*>(context);
+                    auto& slot = *reinterpret_cast<Slot*>(pcontext);
                     return slot(args...);
                 }
 
             private:
                 signal* psignal_; //set to nullptr when moved from
-                Slot slot_;
                 callback_id id_;
         };
 

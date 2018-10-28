@@ -22,12 +22,14 @@ struct slot
     public:
         slot(std::string& str, signal& sig):
             str_(str),
-            connection_(sig.connect(internal_slot{*this}))
+            internal_slot_{*this},
+            connection_(sig.connect(internal_slot_))
         {
         }
 
     private:
         std::string& str_;
+        internal_slot internal_slot_;
         signal::connection<internal_slot> connection_;
 };
 
@@ -41,14 +43,13 @@ int main()
 
     //temporary slot
     {
-        auto slot1_connection = sig.connect
-        (
-            [&str](const std::string& value)
-            {
-                str += "1" + value;
-                return true;
-            }
-        );
+        auto slot1 = [&str](const std::string& value)
+        {
+            str += "1" + value;
+            return true;
+        };
+
+        auto slot1_connection = sig.connect(slot1);
 
         sig.emit("a");
 
