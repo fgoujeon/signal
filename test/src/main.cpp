@@ -2,16 +2,36 @@
 #include <string>
 #include <cassert>
 
-using signal = fgl::signal<bool(const std::string&)>;
+using signal = fgl::signal
+<
+    bool(int),
+    bool(const std::string&)
+>;
+
+const std::string& to_string(const std::string& str)
+{
+    return str;
+}
+
+std::string to_string(const int i)
+{
+    return std::to_string(i);
+}
 
 struct slot
 {
     private:
         struct internal_slot
         {
+            bool operator()(const int value)
+            {
+                self.str_ += "0i" + std::to_string(value);
+                return true;
+            }
+
             bool operator()(const std::string& value)
             {
-                self.str_ += "0" + value;
+                self.str_ += "0s" + value;
                 return true;
             }
 
@@ -42,20 +62,20 @@ int main()
 
     //temporary slot
     {
-        auto slot1 = [&str](const std::string& value)
+        auto slot1 = [&str](const auto& value)
         {
-            str += "1" + value;
+            str += "1" + to_string(value);
             return true;
         };
 
         auto slot1_connection = sig.connect(slot1);
 
-        sig.emit("a");
+        sig.emit(42);
 
         //automatic disconnection
     }
 
     sig.emit("b");
 
-    assert(str == "0a1a0b");
+    assert(str == "0i421420sb");
 }
