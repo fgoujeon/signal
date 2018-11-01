@@ -174,6 +174,21 @@ class signal:
                 > ids_;
         };
 
+        template<class Slot>
+        class owning_connection
+        {
+            public:
+                owning_connection(signal& sig, Slot&& slot):
+                    slot_(std::move(slot)),
+                    connection_(sig, slot_)
+                {
+                }
+
+            private:
+                Slot slot_;
+                connection<Slot> connection_;
+        };
+
     public:
         signal() = default;
 
@@ -186,13 +201,26 @@ class signal:
         signal& operator=(signal&&) = delete;
 
         template<class Slot>
-        auto connect(Slot& slot)
+        auto connect(Slot&& slot)
         {
             using decaid_slot = std::decay_t<Slot>;
-            return connection<decaid_slot>{*this, slot};
+            return private_connect<decaid_slot>(std::forward<Slot>(slot));
         }
 
         using signal_detail::signal_base<Signature...>::emit;
+
+    private:
+        template<class DecaidSlot>
+        auto private_connect(DecaidSlot& slot)
+        {
+            return connection<DecaidSlot>{*this, slot};
+        }
+
+        template<class DecaidSlot>
+        auto private_connect(DecaidSlot&& slot)
+        {
+            return owning_connection<DecaidSlot>{*this, std::move(slot)};
+        }
 };
 
 } //namespace fgl

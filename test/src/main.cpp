@@ -1,5 +1,6 @@
 #include <fgl/signal.hpp>
 #include <string>
+#include <sstream>
 #include <cassert>
 
 using signal = fgl::signal
@@ -8,63 +9,85 @@ using signal = fgl::signal
     bool(const std::string&)
 >;
 
-const std::string& to_string(const std::string& str)
-{
-    return str;
-}
-
-std::string to_string(const int i)
-{
-    return std::to_string(i);
-}
-
-struct slot
+struct slot_with_non_owing_connection
 {
     private:
         struct internal_slot
         {
             bool operator()(const int value)
             {
-                self.str_ += "0i" + std::to_string(value);
+                self.oss_ << "0i" << value;
                 return true;
             }
 
             bool operator()(const std::string& value)
             {
-                self.str_ += "0s" + value;
+                self.oss_ << "0s" << value;
                 return true;
             }
 
-            slot& self;
+            slot_with_non_owing_connection& self;
         };
 
     public:
-        slot(std::string& str, signal& sig):
-            str_(str),
+        slot_with_non_owing_connection(std::ostringstream& oss, signal& sig):
+            oss_(oss),
             internal_slot_{*this},
             connection_(sig.connect(internal_slot_))
         {
         }
 
     private:
-        std::string& str_;
+        std::ostringstream& oss_;
         internal_slot internal_slot_;
         signal::connection<internal_slot> connection_;
+};
+
+struct slot_with_owning_connection
+{
+    private:
+        struct internal_slot
+        {
+            bool operator()(const int value)
+            {
+                self.oss_ << "2i" << value;
+                return true;
+            }
+
+            bool operator()(const std::string& value)
+            {
+                self.oss_ << "2s" << value;
+                return true;
+            }
+
+            slot_with_owning_connection& self;
+        };
+
+    public:
+        slot_with_owning_connection(std::ostringstream& oss, signal& sig):
+            oss_(oss),
+            connection_(sig.connect(internal_slot{*this}))
+        {
+        }
+
+    private:
+        std::ostringstream& oss_;
+        signal::owning_connection<internal_slot> connection_;
 };
 
 int main()
 {
     signal sig;
+    auto oss = std::ostringstream{};
 
-    auto str = std::string{""};
+    //permanent slot, class, non-owning connection
+    auto slot0 = slot_with_non_owing_connection{oss, sig};
 
-    auto slot0 = slot{str, sig};
-
-    //temporary slot
+    //temporary slot, lambda, non-owning connection
     {
-        auto slot1 = [&str](const auto& value)
+        auto slot1 = [&oss](const auto& value)
         {
-            str += "1" + to_string(value);
+            oss << "1" << value;
             return true;
         };
 
@@ -75,7 +98,47 @@ int main()
         //automatic disconnection
     }
 
+    //temporary slot, class, owning connection
+    {
+        auto slot2 = slot_with_owning_connection{oss, sig};
+
+        sig.emit("a");
+    }
+
+    //temporary slot, lambda, owning connection
+    {
+        auto slot3_connection = sig.connect
+        (
+            [&oss](const auto& value)
+            {
+                oss << "3" << value;
+                return true;
+            }
+        );
+
+        sig.emit(8);
+
+        //automatic disconnection
+    }
+
     sig.emit("b");
 
-    assert(str == "0i421420sb");
+    const auto expected_str =
+        //emit(42)
+        "0i42" //slot0
+        "142" //slot1
+
+        //emit("a")
+        "0sa" //slot0
+        "2sa" //slot2
+
+        //emit(8)
+        "0i8" //slot0
+        "38" //slot3
+
+        //emit("b")
+        "0sb" //slot0
+    ;
+
+    assert(oss.str() == expected_str);
 }
