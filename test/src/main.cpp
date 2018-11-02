@@ -1,5 +1,6 @@
-#include "tests/signal_destroyed_before_slot.hpp"
 #include "tests/basic.hpp"
+#include "tests/move.hpp"
+#include "tests/signal_destroyed_before_slot.hpp"
 #include <iostream>
 
 template<class TestFn>
@@ -27,8 +28,9 @@ int main()
         ++test_count; \
     }
 
-    RUN_TEST(signal_destroyed_before_slot);
     RUN_TEST(basic);
+    RUN_TEST(move);
+    RUN_TEST(signal_destroyed_before_slot);
 
     std::cout << "\n" << success_count << "/" << test_count << " tests succeeded.\n";
     if(success_count == test_count)

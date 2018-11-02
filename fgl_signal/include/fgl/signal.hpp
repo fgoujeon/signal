@@ -63,7 +63,7 @@ namespace signal_detail
         static R on_event(void* pvslot, Args... args)
         {
             auto& slot = *reinterpret_cast<Slot*>(pvslot);
-            return slot(args...);
+            return slot(std::forward<Args>(args)...);
         }
     };
 
@@ -105,7 +105,7 @@ namespace signal_detail
             void emit(Args... args)
             {
                 for(const auto& s: callbacks_)
-                    s.pf(s.pvslot, args...);
+                    s.pf(s.pvslot, std::forward<Args>(args)...);
             }
 
             callback_id<signature> add_event_callback(const fn_ptr_t<signature> pf, void* pvslot)
