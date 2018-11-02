@@ -87,11 +87,11 @@ namespace signal_detail
             using signal_base<Signature>::emit;
             using signal_base<Signatures...>::emit;
 
-            using signal_base<Signature>::add_callback;
-            using signal_base<Signatures...>::add_callback;
+            using signal_base<Signature>::add_event_callback;
+            using signal_base<Signatures...>::add_event_callback;
 
-            using signal_base<Signature>::remove_callback;
-            using signal_base<Signatures...>::remove_callback;
+            using signal_base<Signature>::remove_event_callback;
+            using signal_base<Signatures...>::remove_event_callback;
     };
 
     //leaf specialization
@@ -108,13 +108,13 @@ namespace signal_detail
                     s.pf(s.pvslot, args...);
             }
 
-            callback_id<signature> add_callback(const fn_ptr_t<signature> pf, void* pvslot)
+            callback_id<signature> add_event_callback(const fn_ptr_t<signature> pf, void* pvslot)
             {
                 callbacks_.emplace_back(pf, pvslot);
                 return std::prev(callbacks_.end());
             }
 
-            void remove_callback(const callback_id<signature> id)
+            void remove_event_callback(const callback_id<signature> id)
             {
                 callbacks_.erase(id);
             }
@@ -139,7 +139,18 @@ class signal:
                     (
                         std::make_tuple
                         (
-                            psignal_->add_callback(&signal_detail::on_event_holder<Slot, Signature>::on_event, &slot)...
+                            psignal_->add_event_callback
+                            (
+                                &signal_detail::on_event_holder<Slot, Signature>::on_event,
+                                &slot
+                            )...
+                        )
+                    ),
+                    destruction_callback_id_
+                    (
+                        psignal_->add_destruction_callback
+                        (
+                            &on_signal_destruction, this
                         )
                     )
                 {
@@ -162,16 +173,37 @@ class signal:
                 {
                     if(psignal_)
                     {
-                        (psignal_->remove_callback(std::get<signal_detail::callback_id<Signature>>(ids_)), ...);
+                        psignal_->remove_destruction_callback(destruction_callback_id_);
+
+                        //Remove event callback of each signature.
+                        (
+                            psignal_->remove_event_callback
+                            (
+                                std::get<signal_detail::callback_id<Signature>>(ids_)
+                            ),
+                            ...
+                        );
                     }
                 }
 
             private:
-                signal* psignal_; //set to nullptr when moved from
+                static void on_signal_destruction(void* pvself)
+                {
+                    auto& self = *reinterpret_cast<connection*>(pvself);
+                    self.psignal_ = nullptr;
+                }
+
+            private:
+                //Pointer to signal.
+                //Set to nullptr when connection is closed or moved from.
+                signal* psignal_;
+
                 std::tuple
                 <
                     signal_detail::callback_id<Signature>...
                 > ids_;
+
+                signal_detail::callback_id<void()> destruction_callback_id_;
         };
 
         template<class Slot>
@@ -200,6 +232,13 @@ class signal:
 
         signal& operator=(signal&&) = delete;
 
+        ~signal()
+        {
+            //Notify connections that the signal is destroyed so that they
+            //don't try to call remove_*() functions.
+            destruction_signal_.emit();
+        }
+
         template<class Slot>
         auto connect(Slot&& slot)
         {
@@ -221,6 +260,19 @@ class signal:
         {
             return owning_connection<DecaidSlot>{*this, std::move(slot)};
         }
+
+        auto add_destruction_callback(signal_detail::fn_ptr_t<void()> pf, void* pvconnection)
+        {
+            return destruction_signal_.add_event_callback(pf, pvconnection);
+        }
+
+        void remove_destruction_callback(const signal_detail::callback_id<void()> id)
+        {
+            destruction_signal_.remove_event_callback(id);
+        }
+
+    private:
+        signal_detail::signal_base<void()> destruction_signal_;
 };
 
 } //namespace fgl

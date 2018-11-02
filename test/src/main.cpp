@@ -1,144 +1,44 @@
-#include <fgl/signal.hpp>
-#include <string>
-#include <sstream>
-#include <cassert>
+#include "tests/signal_destroyed_before_slot.hpp"
+#include "tests/basic.hpp"
+#include <iostream>
 
-using signal = fgl::signal
-<
-    bool(int),
-    bool(const std::string&)
->;
-
-struct slot_with_non_owing_connection
+template<class TestFn>
+bool run_test(TestFn f, const char* test_name)
 {
-    private:
-        struct internal_slot
-        {
-            bool operator()(const int value)
-            {
-                self.oss_ << "0i" << value;
-                return true;
-            }
-
-            bool operator()(const std::string& value)
-            {
-                self.oss_ << "0s" << value;
-                return true;
-            }
-
-            slot_with_non_owing_connection& self;
-        };
-
-    public:
-        slot_with_non_owing_connection(std::ostringstream& oss, signal& sig):
-            oss_(oss),
-            internal_slot_{*this},
-            connection_(sig.connect(internal_slot_))
-        {
-        }
-
-    private:
-        std::ostringstream& oss_;
-        internal_slot internal_slot_;
-        signal::connection<internal_slot> connection_;
-};
-
-struct slot_with_owning_connection
-{
-    private:
-        struct internal_slot
-        {
-            bool operator()(const int value)
-            {
-                self.oss_ << "2i" << value;
-                return true;
-            }
-
-            bool operator()(const std::string& value)
-            {
-                self.oss_ << "2s" << value;
-                return true;
-            }
-
-            slot_with_owning_connection& self;
-        };
-
-    public:
-        slot_with_owning_connection(std::ostringstream& oss, signal& sig):
-            oss_(oss),
-            connection_(sig.connect(internal_slot{*this}))
-        {
-        }
-
-    private:
-        std::ostringstream& oss_;
-        signal::owning_connection<internal_slot> connection_;
-};
+    std::cout << "Running " << test_name << " test... " << std::flush;
+    const auto success = f();
+    if(success)
+        std::cout << "OK\n";
+    else
+        std::cout << "FAILED\n";
+    return success;
+}
 
 int main()
 {
-    signal sig;
-    auto oss = std::ostringstream{};
+    auto test_count = 0;
+    auto success_count = 0;
 
-    //permanent slot, class, non-owning connection
-    auto slot0 = slot_with_non_owing_connection{oss, sig};
-
-    //temporary slot, lambda, non-owning connection
-    {
-        auto slot1 = [&oss](const auto& value)
-        {
-            oss << "1" << value;
-            return true;
-        };
-
-        auto slot1_connection = sig.connect(slot1);
-
-        sig.emit(42);
-
-        //automatic disconnection
+#define RUN_TEST(TEST_NAME) \
+    { \
+        const auto success = run_test(&tests::TEST_NAME::test, #TEST_NAME); \
+        if(success) \
+            ++success_count; \
+        ++test_count; \
     }
 
-    //temporary slot, class, owning connection
+    RUN_TEST(signal_destroyed_before_slot);
+    RUN_TEST(basic);
+
+    std::cout << "\n" << success_count << "/" << test_count << " tests succeeded.\n";
+    if(success_count == test_count)
     {
-        auto slot2 = slot_with_owning_connection{oss, sig};
-
-        sig.emit("a");
+        std::cout << "SUCCESS!\n";
+        return 0;
     }
-
-    //temporary slot, lambda, owning connection
+    else
     {
-        auto slot3_connection = sig.connect
-        (
-            [&oss](const auto& value)
-            {
-                oss << "3" << value;
-                return true;
-            }
-        );
-
-        sig.emit(8);
-
-        //automatic disconnection
+        std::cout << "FAILURE!\n";
+        return 1;
     }
-
-    sig.emit("b");
-
-    const auto expected_str =
-        //emit(42)
-        "0i42" //slot0
-        "142" //slot1
-
-        //emit("a")
-        "0sa" //slot0
-        "2sa" //slot2
-
-        //emit(8)
-        "0i8" //slot0
-        "38" //slot3
-
-        //emit("b")
-        "0sb" //slot0
-    ;
-
-    assert(oss.str() == expected_str);
 }
