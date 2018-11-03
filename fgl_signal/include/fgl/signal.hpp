@@ -20,10 +20,10 @@ namespace signal_detail
     template<class Signature>
     struct fn_ptr;
 
-    template<class R, class... Args>
-    struct fn_ptr<R(Args...)>
+    template<class... Args>
+    struct fn_ptr<void(Args...)>
     {
-        using type = R(*)(void*, Args...);
+        using type = void(*)(void*, Args...);
     };
 
     template<class Signature>
@@ -57,13 +57,13 @@ namespace signal_detail
     template<class Slot, class Signature>
     struct on_event_holder;
 
-    template<class Slot, class R, class... Args>
-    struct on_event_holder<Slot, R(Args...)>
+    template<class Slot, class... Args>
+    struct on_event_holder<Slot, void(Args...)>
     {
-        static R on_event(void* pvslot, Args... args)
+        static void on_event(void* pvslot, Args... args)
         {
             auto& slot = *reinterpret_cast<Slot*>(pvslot);
-            return slot(std::forward<Args>(args)...);
+            slot(std::forward<Args>(args)...);
         }
     };
 
@@ -98,8 +98,10 @@ namespace signal_detail
     template<class R, class... Args>
     class signal_base<R(Args...)>
     {
+        static_assert(std::is_same_v<R, void>, "The return type of a signal signature must be void.");
+
         private:
-            using signature = R(Args...);
+            using signature = void(Args...);
 
         public:
             void emit(Args... args)
