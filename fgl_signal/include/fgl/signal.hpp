@@ -106,8 +106,43 @@ namespace signal_detail
         public:
             void emit(Args... args)
             {
-                for(const auto& s: callbacks_)
-                    s.pf(s.pvslot, std::forward<Args>(args)...);
+                //Call slots.
+                {
+                    struct recursivity_level_incrementer
+                    {
+                        recursivity_level_incrementer(unsigned int& r):
+                            recursivity_level_(r)
+                        {
+                            ++recursivity_level_;
+                        }
+
+                        ~recursivity_level_incrementer()
+                        {
+                            --recursivity_level_;
+                        }
+
+                        unsigned int& recursivity_level_;
+                    };
+
+                    recursivity_level_incrementer rli{recursivity_level_};
+
+                    for(const auto& cback: callbacks_)
+                        cback.pf(cback.pvslot, std::forward<Args>(args)...);
+                }
+
+                //Clean callback list in case remove_event_callback() has
+                //been called when we were calling slots.
+                if(must_clean_callback_list_ && recursivity_level_ == 0)
+                {
+                    callbacks_.remove_if
+                    (
+                        [](const auto& cback)
+                        {
+                            return cback.pf == &noop;
+                        }
+                    );
+                    must_clean_callback_list_ = false;
+                }
             }
 
             callback_id<signature> add_event_callback(const fn_ptr_t<signature> pf, void* pvslot)
@@ -118,11 +153,28 @@ namespace signal_detail
 
             void remove_event_callback(const callback_id<signature> id)
             {
-                callbacks_.erase(id);
+                if(recursivity_level_ == 0) //Are we iterating on callbacks_?
+                {
+                    //If not, erase right now.
+                    callbacks_.erase(id);
+                }
+                else
+                {
+                    //If so, postpone erasing.
+                    id->pf = &noop;
+                    must_clean_callback_list_ = true;
+                }
+            }
+
+        private:
+            static void noop(void*, Args...)
+            {
             }
 
         private:
             std::list<callback<signature>> callbacks_;
+            unsigned int recursivity_level_ = 0;
+            bool must_clean_callback_list_ = false;
     };
 }
 
@@ -173,6 +225,11 @@ class signal:
 
                 ~connection()
                 {
+                    close();
+                }
+
+                void close()
+                {
                     if(psignal_)
                     {
                         psignal_->remove_destruction_callback(destruction_callback_id_);
@@ -185,6 +242,8 @@ class signal:
                             ),
                             ...
                         );
+
+                        psignal_ = nullptr;
                     }
                 }
 
@@ -216,6 +275,11 @@ class signal:
                     slot_(std::move(slot)),
                     connection_(sig, slot_)
                 {
+                }
+
+                void close()
+                {
+                    connection_.close();
                 }
 
             private:
