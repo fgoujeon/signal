@@ -1,6 +1,9 @@
 #include "tests/basic.hpp"
+#include "tests/basic_example.hpp"
 #include "tests/disconnect_at_emit.hpp"
+#include "tests/full_example.hpp"
 #include "tests/move.hpp"
+#include "tests/multi_signature_example.hpp"
 #include "tests/signal_destroyed_before_slot.hpp"
 #include <iostream>
 
@@ -30,8 +33,11 @@ int main()
     }
 
     RUN_TEST(basic);
+    RUN_TEST(basic_example);
     RUN_TEST(disconnect_at_emit);
+    RUN_TEST(full_example);
     RUN_TEST(move);
+    RUN_TEST(multi_signature_example);
     RUN_TEST(signal_destroyed_before_slot);
 
     std::cout << "\n" << success_count << "/" << test_count << " tests succeeded.\n";
