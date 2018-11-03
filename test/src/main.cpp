@@ -1,4 +1,5 @@
 #include "tests/basic.hpp"
+#include "tests/disconnect_at_emit.hpp"
 #include "tests/move.hpp"
 #include "tests/signal_destroyed_before_slot.hpp"
 #include <iostream>
@@ -29,6 +30,7 @@ int main()
     }
 
     RUN_TEST(basic);
+    RUN_TEST(disconnect_at_emit);
     RUN_TEST(move);
     RUN_TEST(signal_destroyed_before_slot);
 

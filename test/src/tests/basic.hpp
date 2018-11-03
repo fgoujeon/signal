@@ -10,8 +10,8 @@ namespace tests::basic
 
 using signal = fgl::signal
 <
-    bool(int),
-    bool(const std::string&)
+    void(int),
+    void(const std::string&)
 >;
 
 struct slot_with_non_owing_connection
@@ -19,16 +19,14 @@ struct slot_with_non_owing_connection
     private:
         struct internal_slot
         {
-            bool operator()(const int value)
+            void operator()(const int value)
             {
                 self.oss_ << "0i" << value;
-                return true;
             }
 
-            bool operator()(const std::string& value)
+            void operator()(const std::string& value)
             {
                 self.oss_ << "0s" << value;
-                return true;
             }
 
             slot_with_non_owing_connection& self;
@@ -53,16 +51,14 @@ struct slot_with_owning_connection
     private:
         struct internal_slot
         {
-            bool operator()(const int value)
+            void operator()(const int value)
             {
                 self.oss_ << "2i" << value;
-                return true;
             }
 
-            bool operator()(const std::string& value)
+            void operator()(const std::string& value)
             {
                 self.oss_ << "2s" << value;
-                return true;
             }
 
             slot_with_owning_connection& self;
@@ -94,7 +90,6 @@ bool test()
         auto slot1 = [&oss](const auto& value)
         {
             oss << "1" << value;
-            return true;
         };
 
         auto slot1_connection = sig.connect(slot1);
@@ -118,7 +113,6 @@ bool test()
             [&oss](const auto& value)
             {
                 oss << "3" << value;
-                return true;
             }
         );
 

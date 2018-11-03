@@ -20,10 +20,10 @@ namespace signal_detail
     template<class Signature>
     struct fn_ptr;
 
-    template<class R, class... Args>
-    struct fn_ptr<R(Args...)>
+    template<class... Args>
+    struct fn_ptr<void(Args...)>
     {
-        using type = R(*)(void*, Args...);
+        using type = void(*)(void*, Args...);
     };
 
     template<class Signature>
@@ -57,13 +57,13 @@ namespace signal_detail
     template<class Slot, class Signature>
     struct on_event_holder;
 
-    template<class Slot, class R, class... Args>
-    struct on_event_holder<Slot, R(Args...)>
+    template<class Slot, class... Args>
+    struct on_event_holder<Slot, void(Args...)>
     {
-        static R on_event(void* pvslot, Args... args)
+        static void on_event(void* pvslot, Args... args)
         {
             auto& slot = *reinterpret_cast<Slot*>(pvslot);
-            return slot(std::forward<Args>(args)...);
+            slot(std::forward<Args>(args)...);
         }
     };
 
@@ -98,14 +98,51 @@ namespace signal_detail
     template<class R, class... Args>
     class signal_base<R(Args...)>
     {
+        static_assert(std::is_same_v<R, void>, "The return type of a signal signature must be void.");
+
         private:
-            using signature = R(Args...);
+            using signature = void(Args...);
 
         public:
             void emit(Args... args)
             {
-                for(const auto& s: callbacks_)
-                    s.pf(s.pvslot, std::forward<Args>(args)...);
+                //Call slots.
+                {
+                    struct recursivity_level_incrementer
+                    {
+                        recursivity_level_incrementer(unsigned int& r):
+                            recursivity_level_(r)
+                        {
+                            ++recursivity_level_;
+                        }
+
+                        ~recursivity_level_incrementer()
+                        {
+                            --recursivity_level_;
+                        }
+
+                        unsigned int& recursivity_level_;
+                    };
+
+                    recursivity_level_incrementer rli{recursivity_level_};
+
+                    for(const auto& cback: callbacks_)
+                        cback.pf(cback.pvslot, std::forward<Args>(args)...);
+                }
+
+                //Clean callback list in case remove_event_callback() has
+                //been called when we were calling slots.
+                if(must_clean_callback_list_ && recursivity_level_ == 0)
+                {
+                    callbacks_.remove_if
+                    (
+                        [](const auto& cback)
+                        {
+                            return cback.pf == &noop;
+                        }
+                    );
+                    must_clean_callback_list_ = false;
+                }
             }
 
             callback_id<signature> add_event_callback(const fn_ptr_t<signature> pf, void* pvslot)
@@ -116,11 +153,28 @@ namespace signal_detail
 
             void remove_event_callback(const callback_id<signature> id)
             {
-                callbacks_.erase(id);
+                if(recursivity_level_ == 0) //Are we iterating on callbacks_?
+                {
+                    //If not, erase right now.
+                    callbacks_.erase(id);
+                }
+                else
+                {
+                    //If so, postpone erasing.
+                    id->pf = &noop;
+                    must_clean_callback_list_ = true;
+                }
+            }
+
+        private:
+            static void noop(void*, Args...)
+            {
             }
 
         private:
             std::list<callback<signature>> callbacks_;
+            unsigned int recursivity_level_ = 0;
+            bool must_clean_callback_list_ = false;
     };
 }
 
@@ -171,6 +225,11 @@ class signal:
 
                 ~connection()
                 {
+                    close();
+                }
+
+                void close()
+                {
                     if(psignal_)
                     {
                         psignal_->remove_destruction_callback(destruction_callback_id_);
@@ -183,6 +242,8 @@ class signal:
                             ),
                             ...
                         );
+
+                        psignal_ = nullptr;
                     }
                 }
 
@@ -214,6 +275,11 @@ class signal:
                     slot_(std::move(slot)),
                     connection_(sig, slot_)
                 {
+                }
+
+                void close()
+                {
+                    connection_.close();
                 }
 
             private:
