@@ -25,16 +25,14 @@ fgl::signal
     void(int),
     void(const std::string&),
     void(const whatever_type_you_want&)
-> my_multi_signal;
+> signal;
 
 std::ostringstream oss;
-auto slot = [&oss](const auto& value){oss << value << '\n';};
+auto connection = signal.connect([&oss](const auto& value){oss << value << '\n';});
 
-auto connection = my_multi_signal.connect(slot);
-
-my_multi_signal.emit(42);
-my_multi_signal.emit("test");
-my_multi_signal.emit(whatever_type_you_want{});
+signal.emit(42);
+signal.emit("test");
+signal.emit(whatever_type_you_want{});
 
 std::cout << oss.str();
 //end::example[]
