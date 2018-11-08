@@ -75,28 +75,12 @@ namespace signal_detail
     for the emit() member function.
     */
 
-    template<class... Signatures>
-    class signal_base;
-
-    template<class Signature, class... Signatures>
-    class signal_base<Signature, Signatures...>:
-        public signal_base<Signature>,
-        public signal_base<Signatures...>
-    {
-        public:
-            using signal_base<Signature>::emit;
-            using signal_base<Signatures...>::emit;
-
-            using signal_base<Signature>::add_event_callback;
-            using signal_base<Signatures...>::add_event_callback;
-
-            using signal_base<Signature>::remove_event_callback;
-            using signal_base<Signatures...>::remove_event_callback;
-    };
+    template<class Signature>
+    class subsignal;
 
     //leaf specialization
     template<class R, class... Args>
-    class signal_base<R(Args...)>
+    class subsignal<R(Args...)>
     {
         static_assert(std::is_same_v<R, void>, "The return type of a signal signature must be void.");
 
@@ -178,9 +162,9 @@ namespace signal_detail
     };
 }
 
-template<class... Signature>
+template<class... Signatures>
 class signal:
-    private signal_detail::signal_base<Signature...>
+    private signal_detail::subsignal<Signatures>...
 {
     private:
         template<class Slot>
@@ -195,7 +179,7 @@ class signal:
                         (
                             psignal_->add_event_callback
                             (
-                                &signal_detail::on_event_holder<Slot, Signature>::on_event,
+                                &signal_detail::on_event_holder<Slot, Signatures>::on_event,
                                 &slot
                             )...
                         )
@@ -238,7 +222,7 @@ class signal:
                         (
                             psignal_->remove_event_callback
                             (
-                                std::get<signal_detail::callback_id<Signature>>(ids_)
+                                std::get<signal_detail::callback_id<Signatures>>(ids_)
                             ),
                             ...
                         );
@@ -261,7 +245,7 @@ class signal:
 
                 std::tuple
                 <
-                    signal_detail::callback_id<Signature>...
+                    signal_detail::callback_id<Signatures>...
                 > ids_;
 
                 signal_detail::callback_id<void()> destruction_callback_id_;
@@ -302,7 +286,7 @@ class signal:
         {
             //Notify connections that the signal is destroyed so that they
             //don't try to call remove_*() functions.
-            destruction_signal_.emit();
+            destruction_subsignal_.emit();
         }
 
         template<class Slot>
@@ -312,9 +296,12 @@ class signal:
             return private_connect<decaid_slot>(std::forward<Slot>(slot));
         }
 
-        using signal_detail::signal_base<Signature...>::emit;
+        using signal_detail::subsignal<Signatures>::emit...;
 
     private:
+        using signal_detail::subsignal<Signatures>::add_event_callback...;
+        using signal_detail::subsignal<Signatures>::remove_event_callback...;
+
         template<class DecaidSlot>
         auto private_connect(DecaidSlot& slot)
         {
@@ -329,16 +316,16 @@ class signal:
 
         auto add_destruction_callback(signal_detail::fn_ptr_t<void()> pf, void* pvconnection)
         {
-            return destruction_signal_.add_event_callback(pf, pvconnection);
+            return destruction_subsignal_.add_event_callback(pf, pvconnection);
         }
 
         void remove_destruction_callback(const signal_detail::callback_id<void()> id)
         {
-            destruction_signal_.remove_event_callback(id);
+            destruction_subsignal_.remove_event_callback(id);
         }
 
     private:
-        signal_detail::signal_base<void()> destruction_signal_;
+        signal_detail::subsignal<void()> destruction_subsignal_;
 };
 
 } //namespace fgl
