@@ -75,12 +75,28 @@ namespace signal_detail
     for the emit() member function.
     */
 
-    template<class Signature>
-    class subsignal;
+    template<class... Signatures>
+    class signal_base;
+
+    template<class Signature, class... Signatures>
+    class signal_base<Signature, Signatures...>:
+        public signal_base<Signature>,
+        public signal_base<Signatures...>
+    {
+        public:
+            using signal_base<Signature>::emit;
+            using signal_base<Signatures...>::emit;
+
+            using signal_base<Signature>::add_event_callback;
+            using signal_base<Signatures...>::add_event_callback;
+
+            using signal_base<Signature>::remove_event_callback;
+            using signal_base<Signatures...>::remove_event_callback;
+    };
 
     //leaf specialization
     template<class R, class... Args>
-    class subsignal<R(Args...)>
+    class signal_base<R(Args...)>
     {
         static_assert(std::is_same_v<R, void>, "The return type of a signal signature must be void.");
 
@@ -164,7 +180,7 @@ namespace signal_detail
 
 template<class... Signatures>
 class signal:
-    private signal_detail::subsignal<Signatures>...
+    private signal_detail::signal_base<Signatures...>
 {
     private:
         template<class Slot>
@@ -296,12 +312,9 @@ class signal:
             return private_connect<decaid_slot>(std::forward<Slot>(slot));
         }
 
-        using signal_detail::subsignal<Signatures>::emit...;
+        using signal_detail::signal_base<Signatures...>::emit;
 
     private:
-        using signal_detail::subsignal<Signatures>::add_event_callback...;
-        using signal_detail::subsignal<Signatures>::remove_event_callback...;
-
         template<class DecaidSlot>
         auto private_connect(DecaidSlot& slot)
         {
@@ -325,7 +338,7 @@ class signal:
         }
 
     private:
-        signal_detail::subsignal<void()> destruction_subsignal_;
+        signal_detail::signal_base<void()> destruction_subsignal_;
 };
 
 } //namespace fgl
