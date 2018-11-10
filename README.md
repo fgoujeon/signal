@@ -4,11 +4,9 @@ fgl::signals is a fast, type-safe, multi-signature, C++17 signal/slot library.
 **THIS LIBRARY IS AT EARLY DEVELOPMENT STAGE AND SHOULDN'T BE USED IN PRODUCTION!**
 
 ## Signals and Slots
-> Signals and slots is a language construct [...] for communication between objects which makes it easy to implement the observer pattern while avoiding boilerplate code.
+Signals and slots is a mechanism for communication between objects which makes it easy to implement the [observer pattern](https://en.wikipedia.org/wiki/Observer_pattern) while avoiding boilerplate code.
 
-— [Wikipedia](https://en.wikipedia.org/wiki/Signals_and_slots)
-
-fgl::signals lets you send events to any number of listeners with minimum code:
+fgl::signals lets you send notifications to any number of observers (or slots) with minimum code:
 ```c++
 fgl::signals::signal<void(int)> signal;
 auto connection0 = signal.connect([](int value){std::cout << "Hello " << value << '\n';});
@@ -21,6 +19,8 @@ Output:
 Hello 42
 World 42
 ```
+
+Note that keeping the `connection` instance alive is mandatory to maintain the connection between the signal and the slot. When a `connection` instance is destroyed, the connection it holds is closed.
 
 ## Type-Safe
 The `fgl::signals::signal` class template takes a function signature as template parameter. It won't let you connect a slot whose signature doesn't match.
@@ -57,7 +57,7 @@ See [benchmark](https://github.com/fgoujeon/signal-benchmark).
 
 Despite its type-safe interface, fgl::signals internally uses `void*`-based type erasure, which is the fastest technique of type erasure.
 
-### Full Example
+## Full Example
 Here is how you could use fgl::signals in a real-life project:
 
 ```c++
