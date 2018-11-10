@@ -4,12 +4,12 @@
 //Check that disconnecting from signal during emit() call doesn't lead to
 //segfault.
 
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 
 namespace tests::disconnect_at_emit
 {
 
-using signal = fgl::signal<void()>;
+using signal = fgl::signals::signal<void()>;
 
 struct receiver
 {

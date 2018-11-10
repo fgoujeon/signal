@@ -2,7 +2,7 @@
 #define TESTS_BASIC_EXAMPLE_HPP
 
 #include "../utility/cout_redirector.hpp"
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <iostream>
 
 namespace tests::basic_example
@@ -11,7 +11,7 @@ namespace tests::basic_example
 void run()
 {
 //tag::example[]
-fgl::signal<void(int)> signal;
+fgl::signals::signal<void(int)> signal;
 auto connection = signal.connect([](int value){std::cout << value << '\n';});
 signal.emit(42);
 //end::example[]

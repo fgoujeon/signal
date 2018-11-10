@@ -1,14 +1,14 @@
 #ifndef TESTS_MOVE_CONNECTION_HPP
 #define TESTS_MOVE_CONNECTION_HPP
 
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <sstream>
 #include <string>
 
 namespace tests::move_connection
 {
 
-using signal = fgl::signal<void(int)>;
+using signal = fgl::signals::signal<void(int)>;
 
 bool test()
 {

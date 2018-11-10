@@ -4,13 +4,13 @@
 //Check that automatic disconnection doesn't lead to segfault when signal
 //is destroyed before slot.
 
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <memory>
 
 namespace tests::signal_destroyed_before_slot
 {
 
-using signal = fgl::signal<void(int)>;
+using signal = fgl::signals::signal<void(int)>;
 
 bool test()
 {

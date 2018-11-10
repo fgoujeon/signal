@@ -1,13 +1,13 @@
 #ifndef TESTS_MOVE_HPP
 #define TESTS_MOVE_HPP
 
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <memory>
 
 namespace tests::move
 {
 
-using signal = fgl::signal
+using signal = fgl::signals::signal
 <
     void(std::unique_ptr<int>&&, const std::string&)
 >;
