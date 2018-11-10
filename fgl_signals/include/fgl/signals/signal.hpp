@@ -4,18 +4,19 @@
 //https://www.boost.org/LICENSE_1_0.txt)
 //Official repository: https://github.com/fgoujeon/signal
 
-#ifndef FGL_SIGNAL_HPP
-#define FGL_SIGNAL_HPP
+#ifndef FGL_SIGNALS_SIGNAL_HPP
+#define FGL_SIGNALS_SIGNAL_HPP
 
 #include <list>
 #include <tuple>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
-namespace fgl
+namespace fgl::signals
 {
 
-namespace signal_detail
+namespace detail
 {
     template<class Signature>
     struct fn_ptr;
@@ -180,7 +181,7 @@ namespace signal_detail
 
 template<class... Signatures>
 class signal:
-    private signal_detail::signal_base<Signatures...>
+    private detail::signal_base<Signatures...>
 {
     private:
         template<class Slot>
@@ -195,7 +196,7 @@ class signal:
                         (
                             psignal_->add_event_callback
                             (
-                                &signal_detail::on_event_holder<Slot, Signatures>::on_event,
+                                &detail::on_event_holder<Slot, Signatures>::on_event,
                                 &slot
                             )...
                         )
@@ -234,7 +235,7 @@ class signal:
                         (
                             psignal_->remove_event_callback
                             (
-                                std::get<signal_detail::callback_id<Signatures>>(ids_)
+                                std::get<detail::callback_id<Signatures>>(ids_)
                             ),
                             ...
                         );
@@ -274,10 +275,10 @@ class signal:
 
                 std::tuple
                 <
-                    signal_detail::callback_id<Signatures>...
+                    detail::callback_id<Signatures>...
                 > ids_;
 
-                signal_detail::callback_id<void()> destruction_callback_id_;
+                detail::callback_id<void()> destruction_callback_id_;
         };
 
         template<class Slot>
@@ -325,7 +326,7 @@ class signal:
             return private_connect<decaid_slot>(std::forward<Slot>(slot));
         }
 
-        using signal_detail::signal_base<Signatures...>::emit;
+        using detail::signal_base<Signatures...>::emit;
 
     private:
         template<class DecaidSlot>
@@ -340,20 +341,20 @@ class signal:
             return owning_connection<DecaidSlot>{*this, std::move(slot)};
         }
 
-        auto add_destruction_callback(signal_detail::fn_ptr_t<void()> pf, void* pvconnection)
+        auto add_destruction_callback(detail::fn_ptr_t<void()> pf, void* pvconnection)
         {
             return destruction_subsignal_.add_event_callback(pf, pvconnection);
         }
 
-        void remove_destruction_callback(const signal_detail::callback_id<void()> id)
+        void remove_destruction_callback(const detail::callback_id<void()> id)
         {
             destruction_subsignal_.remove_event_callback(id);
         }
 
     private:
-        signal_detail::signal_base<void()> destruction_subsignal_;
+        detail::signal_base<void()> destruction_subsignal_;
 };
 
-} //namespace fgl
+} //namespace
 
 #endif

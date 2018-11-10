@@ -1,14 +1,14 @@
 #ifndef TESTS_BASIC_HPP
 #define TESTS_BASIC_HPP
 
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <sstream>
 #include <string>
 
 namespace tests::basic
 {
 
-using signal = fgl::signal
+using signal = fgl::signals::signal
 <
     void(int),
     void(const std::string&)

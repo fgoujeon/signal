@@ -4,7 +4,7 @@
 #include "../utility/cout_redirector.hpp"
 
 //tag::example[]
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -18,7 +18,7 @@ namespace tests::full_example
 /*
 This class represents a car.
 You can fill its fuel tank and drive it.
-Also, it sends events using fgl::signal.
+Also, it sends events using fgl::signals.
 */
 struct car
 {
@@ -35,7 +35,7 @@ struct car
         };
         struct stall_event{};
 
-        using signal = fgl::signal
+        using signal = fgl::signals::signal
         <
             void(const property_change_event<fuel_level_l>&),
             void(const property_change_event<speed_kmh>&),
@@ -111,33 +111,21 @@ This class prints out the current state of the given car.
 */
 struct car_monitor
 {
-    private:
-        struct slot
-        {
-            template<class Event>
-            void operator()(const Event& event)
-            {
-                self.handle_event(event);
-            }
-
-            car_monitor& self;
-        };
-
     public:
         car_monitor(car& c):
-            connection_(c.connect(slot{*this}))
+            connection_{c.connect([this](const auto& event){handle_event(event);})}
         {
         }
 
     private:
         void handle_event(const car::property_change_event<car::speed_kmh>& event)
         {
-            std::cout << "Speed = " << std::to_string(event.value) << " km/h\n";
+            std::cout << "Speed = " << event.value << " km/h\n";
         }
 
         void handle_event(const car::property_change_event<car::fuel_level_l>& event)
         {
-            std::cout << "Fuel level = " << std::to_string(event.value) << " L\n";
+            std::cout << "Fuel level = " << event.value << " L\n";
         }
 
         void handle_event(const car::stall_event&)
@@ -146,7 +134,7 @@ struct car_monitor
         }
 
     private:
-        car::signal::owning_connection<slot> connection_;
+        fgl::signals::any_connection connection_;
 };
 
 int main()
