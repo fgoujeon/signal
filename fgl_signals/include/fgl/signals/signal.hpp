@@ -11,6 +11,7 @@
 #include <tuple>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
 namespace fgl::signals
 {

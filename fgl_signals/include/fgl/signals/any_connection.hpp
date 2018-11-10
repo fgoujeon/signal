@@ -7,8 +7,9 @@
 #ifndef FGL_SIGNALS_ANY_CONNECTION_HPP
 #define FGL_SIGNALS_ANY_CONNECTION_HPP
 
-#include "signal.hpp"
 #include <memory>
+#include <type_traits>
+#include <utility>
 
 namespace fgl::signals
 {
@@ -18,20 +19,17 @@ any_connection is a type-erasing container for any connection or
 owning_connection object.
 */
 
-namespace detail
-{
-    struct abstract_connection_holder
-    {
-        virtual ~abstract_connection_holder(){}
-        virtual void close() = 0;
-    };
-}
-
 struct any_connection
 {
     private:
+        struct abstract_connection_holder
+        {
+            virtual ~abstract_connection_holder(){}
+            virtual void close() = 0;
+        };
+
         template<typename Connection>
-        struct connection_holder: detail::abstract_connection_holder
+        struct connection_holder: abstract_connection_holder
         {
             public:
                 connection_holder(Connection&& c):
@@ -75,7 +73,7 @@ struct any_connection
         }
 
     private:
-        std::unique_ptr<detail::abstract_connection_holder> holder_;
+        std::unique_ptr<abstract_connection_holder> holder_;
 };
 
 } //namespace
