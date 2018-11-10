@@ -200,13 +200,7 @@ class signal:
                             )...
                         )
                     ),
-                    destruction_callback_id_
-                    (
-                        psignal_->add_destruction_callback
-                        (
-                            &on_signal_destruction, this
-                        )
-                    )
+                    destruction_callback_id_(add_destruction_callback())
                 {
                 }
 
@@ -214,8 +208,10 @@ class signal:
 
                 connection(connection&& r):
                     psignal_(r.psignal_),
-                    ids_(r.ids_)
+                    ids_(std::move(r.ids_)),
+                    destruction_callback_id_(add_destruction_callback())
                 {
+                    r.remove_destruction_callback();
                     r.psignal_ = nullptr;
                 }
 
@@ -232,7 +228,7 @@ class signal:
                 {
                     if(psignal_)
                     {
-                        psignal_->remove_destruction_callback(destruction_callback_id_);
+                        remove_destruction_callback();
 
                         //Remove event callback of each signature.
                         (
@@ -248,6 +244,23 @@ class signal:
                 }
 
             private:
+                auto add_destruction_callback()
+                {
+                    return psignal_->add_destruction_callback
+                    (
+                        &on_signal_destruction,
+                        this
+                    );
+                }
+
+                void remove_destruction_callback()
+                {
+                    psignal_->remove_destruction_callback
+                    (
+                        destruction_callback_id_
+                    );
+                }
+
                 static void on_signal_destruction(void* pvself)
                 {
                     auto& self = *reinterpret_cast<connection*>(pvself);

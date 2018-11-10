@@ -3,6 +3,7 @@
 #include "tests/disconnect_at_emit.hpp"
 #include "tests/full_example.hpp"
 #include "tests/move.hpp"
+#include "tests/move_connection.hpp"
 #include "tests/multi_signature_example.hpp"
 #include "tests/signal_destroyed_before_slot.hpp"
 #include <iostream>
@@ -37,6 +38,7 @@ int main()
     RUN_TEST(disconnect_at_emit);
     RUN_TEST(full_example);
     RUN_TEST(move);
+    RUN_TEST(move_connection);
     RUN_TEST(multi_signature_example);
     RUN_TEST(signal_destroyed_before_slot);
 
