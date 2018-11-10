@@ -111,21 +111,9 @@ This class prints out the current state of the given car.
 */
 struct car_monitor
 {
-    private:
-        struct slot
-        {
-            template<class Event>
-            void operator()(const Event& event)
-            {
-                self.handle_event(event);
-            }
-
-            car_monitor& self;
-        };
-
     public:
         car_monitor(car& c):
-            connection_(c.connect(slot{*this}))
+            connection_{c.connect([this](const auto& event){handle_event(event);})}
         {
         }
 
@@ -146,7 +134,7 @@ struct car_monitor
         }
 
     private:
-        car::signal::owning_connection<slot> connection_;
+        fgl::signals::any_connection connection_;
 };
 
 int main()

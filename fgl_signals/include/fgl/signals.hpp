@@ -4,4 +4,10 @@
 //https://www.boost.org/LICENSE_1_0.txt)
 //Official repository: https://github.com/fgoujeon/signal
 
+/*
+This header includes all the headers of the library.
+You might want to include only the headers you need to improve compile time.
+*/
+
+#include "signals/any_connection.hpp"
 #include "signals/signal.hpp"
