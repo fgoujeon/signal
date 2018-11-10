@@ -1,32 +1,34 @@
-# fgl::signal
-fgl::signal is a fast, type-safe, multi-signature, C++17 signal library.
+# fgl::signals
+fgl::signals is a fast, type-safe, multi-signature, C++17 signal/slot library.
 
 **THIS LIBRARY IS AT EARLY DEVELOPMENT STAGE AND SHOULDN'T BE USED IN PRODUCTION!**
 
-## Signal
+## Signals and Slots
 > Signals and slots is a language construct [...] for communication between objects which makes it easy to implement the observer pattern while avoiding boilerplate code.
 
 — [Wikipedia](https://en.wikipedia.org/wiki/Signals_and_slots)
 
-fgl::signal lets you send events with minimum code:
+fgl::signals lets you send events to any number of listeners with minimum code:
 ```c++
-fgl::signal<void(int)> signal;
-auto connection = signal.connect([](int value){std::cout << value << '\n';});
+fgl::signals::signal<void(int)> signal;
+auto connection0 = signal.connect([](int value){std::cout << "Hello " << value << '\n';});
+auto connection1 = signal.connect([](int value){std::cout << "World " << value << '\n';});
 signal.emit(42);
 ```
 
 Output:
 ```
-42
+Hello 42
+World 42
 ```
 
 ## Type-Safe
-The `fgl::signal` class template takes a function signature as template parameter. It won't let you connect a slot whose signature doesn't match.
+The `fgl::signals::signal` class template takes a function signature as template parameter. It won't let you connect a slot whose signature doesn't match.
 
 ## Multi-Signature
-The `fgl::signal` class template can actually take more than one function signature as template parameters:
+The `fgl::signals::signal` class template can actually take more than one function signature as template parameters:
 ```c++
-fgl::signal
+fgl::signals::signal
 <
     void(int),
     void(const std::string&),
@@ -53,13 +55,13 @@ whatever string
 ## Fast
 See [benchmark](https://github.com/fgoujeon/signal-benchmark).
 
-Despite its type-safe interface, fgl::signal internally uses `void*`-based type erasure, which is the fastest technique of type erasure.
+Despite its type-safe interface, fgl::signals internally uses `void*`-based type erasure, which is the fastest technique of type erasure.
 
 ### Full Example
-Here is how you could use fgl::signal in a real-life project:
+Here is how you could use fgl::signals in a real-life project:
 
 ```c++
-#include <fgl/signal.hpp>
+#include <fgl/signals.hpp>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -67,7 +69,7 @@ Here is how you could use fgl::signal in a real-life project:
 /*
 This class represents a car.
 You can fill its fuel tank and drive it.
-Also, it sends events using fgl::signal.
+Also, it sends events using fgl::signals.
 */
 struct car
 {
@@ -84,7 +86,7 @@ struct car
         };
         struct stall_event{};
 
-        using signal = fgl::signal
+        using signal = fgl::signals::signal
         <
             void(const property_change_event<fuel_level_l>&),
             void(const property_change_event<speed_kmh>&),
@@ -160,33 +162,21 @@ This class prints out the current state of the given car.
 */
 struct car_monitor
 {
-    private:
-        struct slot
-        {
-            template<class Event>
-            void operator()(const Event& event)
-            {
-                self.handle_event(event);
-            }
-
-            car_monitor& self;
-        };
-
     public:
         car_monitor(car& c):
-            connection_(c.connect(slot{*this}))
+            connection_{c.connect([this](const auto& event){handle_event(event);})}
         {
         }
 
     private:
         void handle_event(const car::property_change_event<car::speed_kmh>& event)
         {
-            std::cout << "Speed = " << std::to_string(event.value) << " km/h\n";
+            std::cout << "Speed = " << event.value << " km/h\n";
         }
 
         void handle_event(const car::property_change_event<car::fuel_level_l>& event)
         {
-            std::cout << "Fuel level = " << std::to_string(event.value) << " L\n";
+            std::cout << "Fuel level = " << event.value << " L\n";
         }
 
         void handle_event(const car::stall_event&)
@@ -195,7 +185,7 @@ struct car_monitor
         }
 
     private:
-        car::signal::owning_connection<slot> connection_;
+        fgl::signals::any_connection connection_;
 };
 
 int main()

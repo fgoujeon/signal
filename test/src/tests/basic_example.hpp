@@ -12,7 +12,8 @@ void run()
 {
 //tag::example[]
 fgl::signals::signal<void(int)> signal;
-auto connection = signal.connect([](int value){std::cout << value << '\n';});
+auto connection0 = signal.connect([](int value){std::cout << "Hello " << value << '\n';});
+auto connection1 = signal.connect([](int value){std::cout << "World " << value << '\n';});
 signal.emit(42);
 //end::example[]
 }
@@ -22,7 +23,13 @@ bool test()
     std::ostringstream oss;
     utility::cout_redirector redirector{oss};
     run();
-    return oss.str() == "42\n";
+
+    auto expected_str =
+        "Hello 42\n"
+        "World 42\n"
+    ;
+
+    return oss.str() == expected_str;
 }
 
 } //namespace
