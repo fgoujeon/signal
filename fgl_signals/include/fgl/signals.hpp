@@ -10,4 +10,6 @@ You might want to include only the headers you need to improve compile time.
 */
 
 #include "signals/any_connection.hpp"
+#include "signals/connection.hpp"
+#include "signals/owning_connection.hpp"
 #include "signals/signal.hpp"

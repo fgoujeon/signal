@@ -18,7 +18,6 @@ namespace fgl::signals
 any_connection is a type-erasing container for any connection or
 owning_connection object.
 */
-
 struct any_connection
 {
     private:
