@@ -101,6 +101,14 @@ struct connection<SignalTpl<Signatures...>, Slot>
             }
         }
 
+        signal * get_signal() {
+            return psignal_;
+        }
+
+        const signal * get_signal() const {
+            return psignal_;
+        }
+
     private:
         auto add_raw_destruction_closure()
         {

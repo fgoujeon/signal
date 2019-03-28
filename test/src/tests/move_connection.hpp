@@ -4,6 +4,7 @@
 #include <fgl/signals.hpp>
 #include <sstream>
 #include <string>
+#include <functional>
 
 namespace tests::move_connection
 {
@@ -31,15 +32,24 @@ bool test()
     );
     auto connection1b = std::move(connection1);
 
+    auto connection2 = sig.connect
+    (
+        std::function<void(int)>([&oss](const auto& value)
+        {
+            oss << "2" << value;
+        }
+    ));
+    auto connection2b = std::move(connection2);
     sig.emit(99);
 
     const auto expected_str =
         "099"
         "199"
+        "299"
     ;
-
     return oss.str() == expected_str;
 }
+
 
 } //namespace
 

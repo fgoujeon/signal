@@ -26,6 +26,13 @@ struct owning_connection
         {
         }
 
+        owning_connection(owning_connection&& other) 
+        : slot_(std::move(other.slot_))
+        , connection_(*other.connection_.get_signal(), slot_)
+        {
+            other.connection_.close();
+        }
+
         void close()
         {
             connection_.close();
