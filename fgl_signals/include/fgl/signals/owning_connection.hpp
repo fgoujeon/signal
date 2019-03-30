@@ -26,6 +26,8 @@ struct owning_connection
         {
         }
 
+        owning_connection(const owning_connection&) = delete;
+
         /*
         Move constructor:
         - Move slot
