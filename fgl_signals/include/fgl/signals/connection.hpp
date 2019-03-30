@@ -42,6 +42,9 @@ template<template<typename...> typename SignalTpl, typename Slot, typename... Si
 struct connection<SignalTpl<Signatures...>, Slot>
 {
     private:
+        template<typename Signal2, typename Slot2>
+        friend struct owning_connection;
+
         using signal = SignalTpl<Signatures...>;
 
     public:
@@ -99,14 +102,6 @@ struct connection<SignalTpl<Signatures...>, Slot>
 
                 psignal_ = nullptr;
             }
-        }
-
-        signal * get_signal() {
-            return psignal_;
-        }
-
-        const signal * get_signal() const {
-            return psignal_;
         }
 
     private:
