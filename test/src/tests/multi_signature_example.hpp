@@ -2,7 +2,7 @@
 #define TESTS_MULTI_SIGNATURE_EXAMPLE_HPP
 
 #include "../utility/cout_redirector.hpp"
-#include <fgl/signals.hpp>
+#include <fgsig.hpp>
 #include <iostream>
 
 namespace tests::multi_signature_example
@@ -20,7 +20,7 @@ std::ostream& operator<<(std::ostream& l, const whatever_type_you_want&)
 void run()
 {
 //tag::example[]
-fgl::signals::signal
+fgsig::signal
 <
     void(int),
     void(const std::string&),
@@ -28,7 +28,7 @@ fgl::signals::signal
 > signal;
 
 std::ostringstream oss;
-auto connection = fgl::signals::connect(signal, [&oss](const auto& value){oss << value << '\n';});
+auto connection = fgsig::connect(signal, [&oss](const auto& value){oss << value << '\n';});
 
 signal.emit(42);
 signal.emit("test");

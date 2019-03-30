@@ -1,13 +1,13 @@
 #ifndef TESTS_MOVE_HPP
 #define TESTS_MOVE_HPP
 
-#include <fgl/signals.hpp>
+#include <fgsig.hpp>
 #include <memory>
 
 namespace tests::move
 {
 
-using signal = fgl::signals::signal
+using signal = fgsig::signal
 <
     void(std::unique_ptr<int>&&, const std::string&)
 >;
@@ -18,7 +18,7 @@ bool test()
 
     signal sig;
 
-    auto connection0 = fgl::signals::connect
+    auto connection0 = fgsig::connect
     (
         sig,
         [&ok](std::unique_ptr<int>&& upi, const std::string& str)
@@ -27,7 +27,7 @@ bool test()
         }
     );
 
-    auto connection1 = fgl::signals::connect
+    auto connection1 = fgsig::connect
     (
         sig,
         [&ok](std::unique_ptr<int>&& upi, const std::string& str)
@@ -37,7 +37,7 @@ bool test()
         }
     );
 
-    auto connection2 = fgl::signals::connect
+    auto connection2 = fgsig::connect
     (
         sig,
         [&ok](std::unique_ptr<int>&& upi, const std::string& str)

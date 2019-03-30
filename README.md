@@ -1,16 +1,16 @@
-# fgl::signals
-fgl::signals is a fast, type-safe, multi-signature, C++17 signal/slot library.
+# fgsig
+fgsig is a fast, type-safe, multi-signature, C++17 signal/slot library.
 
 **THIS LIBRARY IS AT EARLY DEVELOPMENT STAGE AND SHOULDN'T BE USED IN PRODUCTION!**
 
 ## Signals and Slots
 Signals and slots is a mechanism for communication between objects which makes it easy to implement the [observer pattern](https://en.wikipedia.org/wiki/Observer_pattern) while avoiding boilerplate code.
 
-fgl::signals lets you send notifications to any number of observers (or slots) with minimum code:
+fgsig lets you send notifications to any number of observers (or slots) with minimum code:
 ```c++
-fgl::signals::signal<void(int)> signal;
-auto connection0 = fgl::signals::connect(signal, [](int value){std::cout << "Hello " << value << '\n';});
-auto connection1 = fgl::signals::connect(signal, [](int value){std::cout << "World " << value << '\n';});
+fgsig::signal<void(int)> signal;
+auto connection0 = fgsig::connect(signal, [](int value){std::cout << "Hello " << value << '\n';});
+auto connection1 = fgsig::connect(signal, [](int value){std::cout << "World " << value << '\n';});
 signal.emit(42);
 ```
 
@@ -23,12 +23,12 @@ World 42
 Note that keeping the `connection` instance alive is mandatory to maintain the connection between the signal and the slot. When a `connection` instance is destroyed, the connection it holds is closed.
 
 ## Type-Safe
-The `fgl::signals::signal` class template takes a function signature as template parameter. It won't let you connect a slot whose signature doesn't match.
+The `fgsig::signal` class template takes a function signature as template parameter. It won't let you connect a slot whose signature doesn't match.
 
 ## Multi-Signature
-The `fgl::signals::signal` class template can actually take more than one function signature as template parameters:
+The `fgsig::signal` class template can actually take more than one function signature as template parameters:
 ```c++
-fgl::signals::signal
+fgsig::signal
 <
     void(int),
     void(const std::string&),
@@ -36,7 +36,7 @@ fgl::signals::signal
 > signal;
 
 std::ostringstream oss;
-auto connection = fgl::signals::connect(signal, [&oss](const auto& value){oss << value << '\n';});
+auto connection = fgsig::connect(signal, [&oss](const auto& value){oss << value << '\n';});
 
 signal.emit(42);
 signal.emit("test");
@@ -55,10 +55,10 @@ whatever string
 ## Fast
 See [benchmark](https://github.com/fgoujeon/signal-benchmark).
 
-Despite its type-safe interface, fgl::signals internally uses `void*`-based type erasure, which is the fastest technique of type erasure.
+Despite its type-safe interface, fgsig internally uses `void*`-based type erasure, which is the fastest technique of type erasure.
 
 ## Full Example
-Here is how you could use fgl::signals in a real-life project:
+Here is how you could use fgsig in a real-life project:
 
 ```c++
 #include <fgl/signals.hpp>
@@ -69,7 +69,7 @@ Here is how you could use fgl::signals in a real-life project:
 /*
 This class represents a car.
 You can fill its fuel tank and drive it.
-Also, it sends events using fgl::signals.
+Also, it sends events using fgsig.
 */
 struct car
 {
@@ -86,7 +86,7 @@ struct car
         };
         struct stall_event{};
 
-        using signal = fgl::signals::signal
+        using signal = fgsig::signal
         <
             void(const property_change_event<fuel_level_l>&),
             void(const property_change_event<speed_kmh>&),
@@ -98,7 +98,7 @@ struct car
         template<class Slot>
         auto connect(Slot&& slot)
         {
-            return fgl::signals::connect(signal_, std::forward<Slot>(slot));
+            return fgsig::connect(signal_, std::forward<Slot>(slot));
         }
 
         //Add some fuel.
@@ -185,7 +185,7 @@ struct car_monitor
         }
 
     private:
-        fgl::signals::any_connection connection_;
+        fgsig::any_connection connection_;
 };
 
 int main()

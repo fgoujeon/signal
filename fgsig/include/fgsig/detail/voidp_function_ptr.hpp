@@ -4,10 +4,10 @@
 //https://www.boost.org/LICENSE_1_0.txt)
 //Official repository: https://github.com/fgoujeon/signal
 
-#ifndef FGL_SIGNALS_DETAIL_VOIDP_FUNCTION_PTR_HPP
-#define FGL_SIGNALS_DETAIL_VOIDP_FUNCTION_PTR_HPP
+#ifndef FGSIG_DETAIL_VOIDP_FUNCTION_PTR_HPP
+#define FGSIG_DETAIL_VOIDP_FUNCTION_PTR_HPP
 
-namespace fgl::signals::detail
+namespace fgsig::detail
 {
 
 template<typename Signature>

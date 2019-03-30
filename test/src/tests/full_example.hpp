@@ -4,7 +4,7 @@
 #include "../utility/cout_redirector.hpp"
 
 //tag::example[]
-#include <fgl/signals.hpp>
+#include <fgsig.hpp>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -18,7 +18,7 @@ namespace tests::full_example
 /*
 This class represents a car.
 You can fill its fuel tank and drive it.
-Also, it sends events using fgl::signals.
+Also, it sends events using fgsig.
 */
 struct car
 {
@@ -35,7 +35,7 @@ struct car
         };
         struct stall_event{};
 
-        using signal = fgl::signals::signal
+        using signal = fgsig::signal
         <
             void(const property_change_event<fuel_level_l>&),
             void(const property_change_event<speed_kmh>&),
@@ -47,7 +47,7 @@ struct car
         template<class Slot>
         auto connect(Slot&& slot)
         {
-            return fgl::signals::connect(signal_, std::forward<Slot>(slot));
+            return fgsig::connect(signal_, std::forward<Slot>(slot));
         }
 
         //Add some fuel.
@@ -134,7 +134,7 @@ struct car_monitor
         }
 
     private:
-        fgl::signals::any_connection connection_;
+        fgsig::any_connection connection_;
 };
 
 int main()

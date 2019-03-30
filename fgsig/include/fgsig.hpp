@@ -9,7 +9,7 @@ This header includes all the headers of the library.
 You might want to include only the headers you need to improve compile time.
 */
 
-#include "signals/any_connection.hpp"
-#include "signals/connection.hpp"
-#include "signals/owning_connection.hpp"
-#include "signals/signal.hpp"
+#include "fgsig/any_connection.hpp"
+#include "fgsig/connection.hpp"
+#include "fgsig/owning_connection.hpp"
+#include "fgsig/signal.hpp"

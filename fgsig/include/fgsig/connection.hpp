@@ -4,14 +4,14 @@
 //https://www.boost.org/LICENSE_1_0.txt)
 //Official repository: https://github.com/fgoujeon/signal
 
-#ifndef FGL_SIGNALS_CONNECTION_HPP
-#define FGL_SIGNALS_CONNECTION_HPP
+#ifndef FGSIG_CONNECTION_HPP
+#define FGSIG_CONNECTION_HPP
 
 #include "detail/raw_closure.hpp"
 #include <tuple>
 #include <utility>
 
-namespace fgl::signals
+namespace fgsig
 {
 
 namespace detail

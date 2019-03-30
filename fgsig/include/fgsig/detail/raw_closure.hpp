@@ -4,13 +4,13 @@
 //https://www.boost.org/LICENSE_1_0.txt)
 //Official repository: https://github.com/fgoujeon/signal
 
-#ifndef FGL_SIGNALS_DETAIL_RAW_CLOSURE_HPP
-#define FGL_SIGNALS_DETAIL_RAW_CLOSURE_HPP
+#ifndef FGSIG_DETAIL_RAW_CLOSURE_HPP
+#define FGSIG_DETAIL_RAW_CLOSURE_HPP
 
 #include "voidp_function_ptr.hpp"
 #include <list>
 
-namespace fgl::signals::detail
+namespace fgsig::detail
 {
 
 template<typename Signature>
