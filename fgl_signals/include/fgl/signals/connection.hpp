@@ -42,6 +42,9 @@ template<template<typename...> typename SignalTpl, typename Slot, typename... Si
 struct connection<SignalTpl<Signatures...>, Slot>
 {
     private:
+        template<typename Signal2, typename Slot2>
+        friend struct owning_connection;
+
         using signal = SignalTpl<Signatures...>;
 
     public:

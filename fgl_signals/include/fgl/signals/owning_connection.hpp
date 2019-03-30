@@ -26,6 +26,21 @@ struct owning_connection
         {
         }
 
+        owning_connection(const owning_connection&) = delete;
+
+        /*
+        Move constructor:
+        - Move slot
+        - Connect signal to new slot
+        - Disconnect signal from moved-from slot
+        */
+        owning_connection(owning_connection&& r):
+            slot_(std::move(r.slot_)),
+            connection_(*r.connection_.psignal_, slot_)
+        {
+            r.connection_.close();
+        }
+
         void close()
         {
             connection_.close();
