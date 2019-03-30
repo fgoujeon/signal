@@ -57,6 +57,9 @@ See [benchmark](https://github.com/fgoujeon/signal-benchmark).
 
 Despite its type-safe interface, fgsig internally uses `void*`-based type erasure, which is the fastest technique of type erasure.
 
+## No Dependency
+fgsig doesn't depend on any other library than the C++ standard library.
+
 ## Full Example
 Here is how you could use fgsig in a real-life project:
 
@@ -217,3 +220,12 @@ Fuel level = 0 L
 Car stalled
 Speed = 0 km/h
 ```
+
+## Limitations
+
+### Thread Safety
+fgsig doesn't provide any thread safety mechanism.
+
+Users are encouraged to handle thread safety at a higher level. Possible solutions are:
+* an implementation of the Active Object design pattern;
+* a `boost::asio::io_context` running on a single thread.
