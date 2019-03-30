@@ -47,7 +47,7 @@ struct car
         template<class Slot>
         auto connect(Slot&& slot)
         {
-            return signal_.connect(std::forward<Slot>(slot));
+            return fgl::signals::connect(signal_, std::forward<Slot>(slot));
         }
 
         //Add some fuel.

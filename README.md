@@ -9,8 +9,8 @@ Signals and slots is a mechanism for communication between objects which makes i
 fgl::signals lets you send notifications to any number of observers (or slots) with minimum code:
 ```c++
 fgl::signals::signal<void(int)> signal;
-auto connection0 = signal.connect([](int value){std::cout << "Hello " << value << '\n';});
-auto connection1 = signal.connect([](int value){std::cout << "World " << value << '\n';});
+auto connection0 = fgl::signals::connect(signal, [](int value){std::cout << "Hello " << value << '\n';});
+auto connection1 = fgl::signals::connect(signal, [](int value){std::cout << "World " << value << '\n';});
 signal.emit(42);
 ```
 
@@ -36,7 +36,7 @@ fgl::signals::signal
 > signal;
 
 std::ostringstream oss;
-auto connection = signal.connect([&oss](const auto& value){oss << value << '\n';});
+auto connection = fgl::signals::connect(signal, [&oss](const auto& value){oss << value << '\n';});
 
 signal.emit(42);
 signal.emit("test");
@@ -98,7 +98,7 @@ struct car
         template<class Slot>
         auto connect(Slot&& slot)
         {
-            return signal_.connect(std::forward<Slot>(slot));
+            return fgl::signals::connect(signal_, std::forward<Slot>(slot));
         }
 
         //Add some fuel.

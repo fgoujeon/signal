@@ -16,7 +16,7 @@ bool test()
 {
     {
         auto psig = std::make_unique<signal>();
-        auto connection = psig->connect([](int){});
+        auto connection = fgl::signals::connect(*psig, [](int){});
         psig.reset();
     }
 

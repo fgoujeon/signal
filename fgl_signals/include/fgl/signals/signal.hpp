@@ -163,28 +163,9 @@ struct signal:
             destruction_subsignal_.emit();
         }
 
-        template<typename Slot>
-        auto connect(Slot&& slot)
-        {
-            using decaid_slot = std::decay_t<Slot>;
-            return private_connect<decaid_slot>(std::forward<Slot>(slot));
-        }
-
         using detail::signal_base<Signatures...>::emit;
 
     private:
-        template<typename DecaidSlot>
-        auto private_connect(DecaidSlot& slot)
-        {
-            return connection<DecaidSlot>{*this, slot};
-        }
-
-        template<typename DecaidSlot>
-        auto private_connect(DecaidSlot&& slot)
-        {
-            return owning_connection<DecaidSlot>{*this, std::move(slot)};
-        }
-
         auto add_raw_destruction_closure(detail::voidp_function_ptr<void()> pf, void* pvconnection)
         {
             return destruction_subsignal_.add_raw_event_closure(pf, pvconnection);
@@ -198,6 +179,24 @@ struct signal:
     private:
         detail::signal_base<void()> destruction_subsignal_;
 };
+
+template<typename Signal, typename Slot>
+auto connect(Signal& sig, Slot&& slot)
+{
+    using decaid_signal_t = std::decay_t<Signal>;
+    using decaid_slot_t = std::decay_t<Slot>;
+
+    static_assert(!std::is_const_v<Signal>);
+
+    if constexpr(std::is_rvalue_reference_v<decltype(slot)>)
+    {
+        return owning_connection<decaid_signal_t, decaid_slot_t>{sig, std::move(slot)};
+    }
+    else
+    {
+        return connection<decaid_signal_t, decaid_slot_t>{sig, slot};
+    }
+}
 
 } //namespace
 

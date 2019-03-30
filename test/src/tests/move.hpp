@@ -18,16 +18,18 @@ bool test()
 
     signal sig;
 
-    auto connection0 = sig.connect
+    auto connection0 = fgl::signals::connect
     (
+        sig,
         [&ok](std::unique_ptr<int>&& upi, const std::string& str)
         {
             ok = ok && upi && *upi == 4 && str == "test";
         }
     );
 
-    auto connection1 = sig.connect
+    auto connection1 = fgl::signals::connect
     (
+        sig,
         [&ok](std::unique_ptr<int>&& upi, const std::string& str)
         {
             ok = ok && upi && *upi == 4 && str == "test";
@@ -35,8 +37,9 @@ bool test()
         }
     );
 
-    auto connection2 = sig.connect
+    auto connection2 = fgl::signals::connect
     (
+        sig,
         [&ok](std::unique_ptr<int>&& upi, const std::string& str)
         {
             ok = ok && !upi && str == "test";

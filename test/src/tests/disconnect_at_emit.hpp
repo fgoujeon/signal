@@ -27,7 +27,7 @@ struct receiver
     public:
         receiver(signal& sig):
             sig_(sig),
-            connection_(sig.connect(slot{*this}))
+            connection_(fgl::signals::connect(sig, slot{*this}))
         {
         }
 
@@ -53,7 +53,7 @@ bool test()
 {
     signal sig;
     receiver receiver0{sig};
-    auto conn = sig.connect([](){});
+    auto conn = fgl::signals::connect(sig, [](){});
 
     sig.emit();
 

@@ -36,7 +36,7 @@ struct slot_with_non_owing_connection
         slot_with_non_owing_connection(std::ostringstream& oss, signal& sig):
             oss_(oss),
             internal_slot_{*this},
-            connection_(sig.connect(internal_slot_))
+            connection_(fgl::signals::connect(sig, internal_slot_))
         {
         }
 
@@ -67,7 +67,7 @@ struct slot_with_owning_connection
     public:
         slot_with_owning_connection(std::ostringstream& oss, signal& sig):
             oss_(oss),
-            connection_(sig.connect(internal_slot{*this}))
+            connection_(fgl::signals::connect(sig, internal_slot{*this}))
         {
         }
 
@@ -92,7 +92,7 @@ bool test()
             oss << "1" << value;
         };
 
-        auto slot1_connection = sig.connect(slot1);
+        auto slot1_connection = fgl::signals::connect(sig, slot1);
 
         sig.emit(42);
 
@@ -108,8 +108,9 @@ bool test()
 
     //temporary slot, lambda, owning connection
     {
-        auto slot3_connection = sig.connect
+        auto slot3_connection = fgl::signals::connect
         (
+            sig,
             [&oss](const auto& value)
             {
                 oss << "3" << value;

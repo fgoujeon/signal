@@ -21,7 +21,7 @@ bool test()
     {
         oss << "0" << value;
     };
-    auto connection0 = sig.connect(slot0);
+    auto connection0 = fgl::signals::connect(sig, slot0);
     auto connection0b = std::move(connection0);
 
     //owning connection
@@ -29,7 +29,7 @@ bool test()
     {
         oss << "1" << value;
     };
-    auto connection1 = sig.connect(std::move(slot1));
+    auto connection1 = fgl::signals::connect(sig, std::move(slot1));
     auto connection1b = std::move(connection1);
 
     //owning connection with std::function slot
@@ -40,7 +40,7 @@ bool test()
             oss << "2" << value;
         }
     };
-    auto connection2 = sig.connect(std::move(slot2));
+    auto connection2 = fgl::signals::connect(sig, std::move(slot2));
     auto connection2b = std::move(connection2);
 
     //static checks

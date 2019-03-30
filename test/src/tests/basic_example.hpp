@@ -12,8 +12,8 @@ void run()
 {
 //tag::example[]
 fgl::signals::signal<void(int)> signal;
-auto connection0 = signal.connect([](int value){std::cout << "Hello " << value << '\n';});
-auto connection1 = signal.connect([](int value){std::cout << "World " << value << '\n';});
+auto connection0 = fgl::signals::connect(signal, [](int value){std::cout << "Hello " << value << '\n';});
+auto connection1 = fgl::signals::connect(signal, [](int value){std::cout << "World " << value << '\n';});
 signal.emit(42);
 //end::example[]
 }

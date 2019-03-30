@@ -28,7 +28,7 @@ fgl::signals::signal
 > signal;
 
 std::ostringstream oss;
-auto connection = signal.connect([&oss](const auto& value){oss << value << '\n';});
+auto connection = fgl::signals::connect(signal, [&oss](const auto& value){oss << value << '\n';});
 
 signal.emit(42);
 signal.emit("test");
